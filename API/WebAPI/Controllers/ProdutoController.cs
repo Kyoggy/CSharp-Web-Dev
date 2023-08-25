@@ -1,24 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebAPI.Models;
+using WebApi.Models;
+using System;
+using System.Collections.Generic;
 
-namespace WebAPI.Controllers;
-
-[ApiController]
-[Route("api/produto")]
-public class ProdutoController : ControllerBase
+namespace WebApi.Controllers
 {
-    //GET: api/produto/listar
-    [HttpGet]
-    [Route("listar")]
-    public string Listar()
+    [ApiController]
+    [Route("api/produto")]
+    public class ProdutoController : ControllerBase
     {
-        return "caramba!";
-    }
+        private static List<Produto> produtos = new List<Produto>();
 
-    [HttpPost]
-    [Route("cadastrar")]
-    public Produto Cadastrar(Produto produto)
-    {
-        return produto;
+        [HttpGet("listar")]
+        public IActionResult Listar() => produtos.Count == 0 ? NotFound() : Ok(produtos);
+
+        [HttpPost("cadastrar")]
+        public IActionResult Cadastrar([FromBody] Produto produto)
+        {
+            produtos.Add(produto);
+            return Created("api/produto/cadastrar", produto);
+        }
+
+        [HttpGet("buscar/{nome}")]
+        public IActionResult Buscar([FromRoute] string nome)
+        {
+            //Forma de verificar através de um For Each
+            /* foreach (var item in produtos)
+            {
+                if(item.Nome == nome)
+                {
+                    return Ok(item);
+                }
+            }
+            return NotFound(); */
+
+            //Sugestão do ChatGPT
+            var resultados = produtos.FindAll(p => p.Nome.Contains(nome, StringComparison.OrdinalIgnoreCase));
+            return Ok(resultados);
+        }
     }
 }
